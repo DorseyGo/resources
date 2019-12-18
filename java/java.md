@@ -1,4 +1,4 @@
-# Java
+# Java4
 ## Java 并发编程
 ### 底层实现原理
 #### 2.1 Volatile的应用
@@ -60,3 +60,36 @@ cond1(no)->op3->e
 | 偏向锁 |  加锁和解锁不需要额外的消耗，和执行非同步方法相比仅存在纳秒级别的差距 | 如果锁之间存在竞争，会带来额外的锁撤销的消耗 | 适用于只有一个线程访问同步块场景 |
 | 轻量级锁 |    竞争的线程不会阻塞，提高了程序的响应性   |   如果始终得不到锁竞争的线程，使用自旋会消耗CPU | 追求响应时间 <br /> 同步块执行速度非常快 |
 | 重量级锁 | 线程竞争不使用自旋，不会消耗CPU |    线程阻塞，响应时间缓慢 | 追求吞吐量 <br /> 同步块执行速度较长 |
+
+## 2 Java性能分析
+### 2.1 线程的作用
+线程是瞬时快照，包含线程调用状态及调用关系。一般线程性能分析以下问题，
+* 系统无缘无故的CPU过高
+* 系统挂起，无响应
+* 系统运行的越来越慢
+* 性能瓶颈（无法充分利用CPU等）
+* 线程死锁、死循环等
+* 由于线程数过多，导致内存溢出
+
+### 2.2 线程状态
+线程有以下几种状态，
+* new
+  - 线程刚被创建，但还没调用start方法
+* Runnable
+  - 从虚拟机角度看，线程正在运行当中，当然可能是某种耗时计算IO等待的操作/CPU时间切片等，这个状态下发生的等待都是其他的系统资源，不是锁、sleep等
+* blocked
+  * 线程处于阻塞状态，正等待一个<font size='3' color='red'>monitor lock</font>。通常情况下，是因为当前线程与其他线程公用了一个锁，其他线程正在使用这个锁进入某个synchronized同步方法块或者方法
+* waiting
+  * 改线程拥有了某个锁之后，调用了他的<font color='red' size='3'>wait</font>方法，等待其他线程/锁拥有者调用notify/notifyall
+  * 当线程调用以下方法会进入waiting状态，
+    * object#wait()
+    * Thread#join()
+    * LockSupport#park()
+* timed_waiting
+  * 线程正在等待，通过使用了<font size='2' color='blue'>sleep，wait，join</font>或者是<font size='2' color='blue'>park</font>方法
+* terminated
+  * 线程终止
+
+> <strong>Note</strong>
+> * 系统慢，必须特别关注<font color='red'>blocked，waiting on condition</font>
+> * 系统<font color='red'>CPU耗高</font>，肯定是线程执行有死循环，此时需关注<font color='red'>Runnable</font>状态
