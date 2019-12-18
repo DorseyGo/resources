@@ -107,7 +107,7 @@ Classes that do not change are loaded into a base classloader. Classes that you 
 
 ##### Exclude Resources
 Certain resources do not necessarily need to trigger a restart when they are changed. if you want to customize these exclusions, you can use the <font size='2' color='gray'>spring.devtools.restart.exclude</font> property.
-``` property
+``` properties
 spring.devtools.restart.exclude=static/**,public/**
 ```
 
@@ -124,7 +124,7 @@ If you work on multi-module project, and not every module is imported into your 
 * restart.include: itmes that should be pushed down into the <i>restart</i> classloader
 
 For example:
-``` property
+``` properties
 restart.include.projectcommon=/mycorp-myproj-[\\w-]+\.jar
 restart.exclude.companycommonlibs=/mycorp-myproj-[\\w-]+\.jar
 ```
@@ -136,7 +136,7 @@ In addition to the usual Spring Framework events, such as <font color='blue' siz
 > <strong>Note</strong>
 > Some events are actually triggered before the <font color='gray' size='3'>ApplicationContext</font> is created. So you cannot register a listener on those as a @Bean. You can register them with the <font color='gray' size='3'>SpringApplication.addListeners(...)</font> method or the <font color='gray' size='3'>SpringApplicationBuilder.listeners(...)</font> method.
 > If you want them registered automatically, added a META-INF/spring.factories by using the <font size='2' color='gray'>org.springframework.context.ApplicationListener</font> key, as followings,
-> ``` property
+> ``` properties
 > org.springframework.context.ApplicationListener=com.example.MyListener
 > ```
 
@@ -220,7 +220,7 @@ SpringBoot uses a very particular <font color='gray'>PropertySource</font> order
 >
 > also can by using a command line argument
 > ``` bash
-> java -jar myapp.jar --spring.application.json='{"name":"test"}'
+> $ java -jar myapp.jar --spring.application.json='{"name":"test"}'
 > ```
 
 #### 2.2.1 Application Property Files
@@ -238,7 +238,8 @@ SpringBoot uses a very particular <font color='gray'>PropertySource</font> order
 
 #### 2.2.2 Placeholders in Properties
 you can refer back to previously defined values
-``` property
+
+``` properties
 app.name=MyApp
 app.description=${app.name} is a SpringBoot application
 ```
@@ -247,3 +248,106 @@ app.description=${app.name} is a SpringBoot application
 <font color='blue'>YAML</font> is a superset of JSON and, as such, is a convenient format for specifying hierarchical configuration data.
 > <strong>Note</strong>
 > If you use <i>Starters</i>, SnakeYAML is automatically provided by <font color='grey' size='2'>spring-boot-starter</font>
+
+#### 2.2.4 Type-safe Configuration Properties
+Using the <font color='grey'>@Value("${property}")</font> annotation to inject configuration properties.
+Spring Boot provides an alternative method of working with properties that lets strongly typed beans govern and validate the configuration of your application.
+
+To avoid injecting other beans from the context, the <font color='grey'>@ConfigurationProperties</font> is recommended only deal with the environment.
+``` java
+@Component
+@ConfigurationProperties(prefix = 'acme')
+public class AcmeProperties {
+  // defines property acme.name
+  private String name;
+
+  // getters and setters
+}
+```
+
+##### Relaxed Binding
+SpringBoot uses some relaxed rules for binding <font color='grey'>Environment</font> properties to <font color='grey'>@ConfigurationProperties</font> beans, so there does not need to be an exact match between the <font color='grey'>Environment</font> property name and the bean property name.
+
+When binding to <font color='grey'>Map</font> properties, if the <font color='grey'>key</font> contains anything other than lowercase alpha-numeric characters or -, you need to use the bracket notation so that the original value is preserved.
+
+``` YAML
+acme:
+ map:
+  "[/key1]": value1
+  "[/key2]": value2
+  /key3: value3
+```
+results in /key1, /key2 and <font color='blue' size='2'>key3</font> as a key in this Map.
+
+##### @ConfigurationProperties vs. @Value
+the comparison as followings,
+| Feature          | @ConfigurationProperties  |   @Value  |
+|:-----------------|:-------------------------:|:---------:|
+| Relaxed Binding  | Yes                       | No        |
+|Meta-data support | Yes                       | No        |
+|spEL Expression   | No                        | No        |
+
+### 2.3 Profiles
+Spring Profiles provide a way to segregate parts of your application configuration and make it be Available only in certain environments. Any <font color='grey'>@Component</font> or <font color='grey'>@Configuration</font> can be marked with <font color='grey'>@Profile</font> to limit when it is loaded.
+
+``` java
+@Configuration
+@Profile("production")
+public class ProdConfiguration {
+  // configuration goes here
+}
+```
+
+As well, can specify <font color='grey'>spring.profiles.active Environment</font> property to specify which profile are active.
+``` properties
+spring.profiles.active=prod,hsqldb
+```
+
+Instead replace the profiles, you can use <font color='grey'>spring.profiles.include</font> property to <b>add</b> additional profiles to current active profile.
+
+``` YAML
+spring
+ profiles: prod
+   include:
+     - proddb
+     - prodmq
+```
+
+### 2.4 Logging
+By default, Spring Boot logs only to console and does not write log files. If you want to write log files in addition to the console output, you need to set a <font color='grey'>logging.file</font> or <font color='grey'>logging.path</font> properties.
+
+| logging.file   | logging.path    | Example        | Description  |
+|:----------|:--------|:------|:-----------------------------------|
+| None  | None | | Console by logging
+| Specific file  | None      | my.log | writes to the specified log file. Names can be an exact location or relative to the current directory |
+| None | Specific directory | /var/log | Writes <font color='blue'>spring.log</font> to the specified directory. Names can be an exact location or relative to current directory |
+
+> <strong>Note</strong>
+> The logging system is initialized early in the application lifecycle. Consequently, logging properties are not found in property file loaded through <font color='grey'>@PropertySource</font> annotations.
+
+##### Logger Groups
+SpringBoot allows you to define logging groups in your Spring <font color='grey'>Environment</font>.
+
+``` Properties
+logging.group.tomcat=org.apache.catalina, org.apache.coyote, org.apache.tomcat
+logging.level.tomcat=TRACE
+```
+
+### 2.5 JSON
+SpringBoot provides integration with three JSON mapping libraries,
+* Gson
+* Jackson
+* JSON-B
+
+Jackson is preferred and default library
+
+### 2.6 Developing Web Application
+##### Spring MVC Auto-configuration
+The auto-configuration adds the following features on the top of Spring's defaults,
+* inclusion of <font color='grey'>ContentNegotiatingViewResolver</font> and <font color='grey'>BeanNameViewResolver</font> beans.
+* support for serving static resources, including support for WebJars.
+* Automicatic registration of <font color='grey'>Converter, GenericConverter</font> and <font color='grey'>Formatter</font> beans.
+* Support for <font color='grey'>HttpMessageConverters</font>
+* Automatic registration of <font color='grey'>MessageCodeResolver</font>
+* static <font color='grey'>static.html</font> support
+* Custom <font color='grey'>Favicon</font> support
