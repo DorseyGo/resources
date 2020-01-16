@@ -351,3 +351,74 @@ The auto-configuration adds the following features on the top of Spring's defaul
 * Automatic registration of <font color='grey'>MessageCodeResolver</font>
 * static <font color='grey'>static.html</font> support
 * Custom <font color='grey'>Favicon</font> support
+* Automatic use of <font color='grey'> ConfigurableWebBindingInitializer</font> bean
+
+if you want to keep Spring Boot MVC features and you want to add additional <font color='blue'>MVC configuration</font> (interceptors, formatters, view controllers and other features), you add your own <font color='grey'>@Configuration</font>class of type <font color='grey'>WebMvcConfigurer</font> but <strong>without</strong> <font color='grey'>@EnableMvc</font>.
+If customization of <font color='grey'>RequestMappingHandlerMapping, RequestMappingHandlerAdapter</font>, or <font color='grey'>ExceptionHandlerExceptionResolver</font> needed, you can declare a <font color='grey'>WebMvcRegistrationsAdapter</font> instance to provide such components.
+To take a complete control of Spring MVC, add your own <font color='grey'>@Configuration</font> annotated with <font color='grey'>@EnableMvc</font>
+
+##### HttpMessageConverters
+Spring MVC uses the <font color='grey'>HttpMessageConverter</font> interface to convert HTTP requests and responses. By default, strings are encoded in <font color='blue'>UTF-8</font>
+``` Java
+@Configuration
+public class MyConfiguration {
+  @Bean
+  public HttpMessageConverters customConverters() {
+    HttpMessageConverter<?> addition = ...
+    HttpMessageConverter<?> another = ...
+    return new HttpMessageConverters(addition, another);
+  }
+}
+```
+##### Custom JSON serializer and deserializer
+Custom serializers are usually registered with Jackson through a module, but Spring Boot provides an alternative <font color='grey'>@JsonComponent</font> annotation that makes it easier to directly register Spring Beans.
+``` Java
+@JsonComponent
+public class Example {
+  public static class Serializer extends JacksonSerializer<SomeObject> {
+    // code goes here
+  }
+
+  public static class Deserializer extends JacksonDeserializer<SomeObject> {
+    // code goes here
+  }
+}
+```
+##### Static Content
+By default, Spring Boot serves static content from a directory called <font color='grey'>/static</font>(or <font color='grey'>/public</font> or <font color='grey'>/resources</font> or <font color='grey'>/META-INF/resources</font>) in the classpath or from the root of the <font color='grey'>ServletContext</font>
+By default, resources are mapped on <font color='grey'>/**</font>, but you can tune it with <font color='grey'>spring.mvc.static-path-pattern</font> property.
+
+``` properties
+spring.mvc.static-path-pattern=/resource/**
+```
+you can also customize the static resource locations by using the <font color='grey'>spring.resources.static-locations</font>property (replacing the default values with a list of directory locations)
+``` Properties
+spring.resources.static-locations=/static/**
+```
+
+In addition to the "standard" static resource locations mentioned earlier, a special case is made for <font color='blue'>Webjars content</font>.
+
+To use version agnositic URLs for WebJars, add the <font color='grey'>webjars-locator-core</font> dependency.
+
+``` html
+<script src='/webjars/jquery/jquery.min.js'></script>
+```
+
+To use cache busting, the following configuration configures a cache busting solution for all static resources, effectively adding a content hash, such as <link href="/css/spring-2a2d59.css" />, in URLS:
+
+``` properties
+spring.resources.chain.strategy.content.enabled=true
+spring.resources.chain.strategy.content.path=/**
+```
+
+### Appendix
+#### Change from version 1.x to 2.x, using undertow will cause exception
+> <strong>note</strong>
+> 1. guarantee that undertow-core is introduced in classpath
+> 2. do configure the server factory
+> ``` Java
+> @Bean
+> public UndertowServletWebServerFactory serverFactory() {
+>        return new UndertowServletWebServerFactory();
+> }
+> ```
