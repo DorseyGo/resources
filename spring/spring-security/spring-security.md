@@ -173,3 +173,22 @@ This will prevent a user from logging in multiple times - a second login will ca
 
 Session Fixation attacks are a potential risk where it is possible for a malicious attacker to create a session by accessing a site, then persuade another user to login with the same session. There are four options for <u><font color='#AAAA00'>session-fixation-protection</font></u>,
 
+### 3. Remember-me Authentication
+
+#### 3.1 Overview
+
+Remember-me or persistent-login authentication refers to web sites being able to remember the identity of a principal between sessions. This is typically accomplished by sending cookies to the browser, with the cookie being detected during future sessions and causing automated login to take place.
+
+#### 3.2 Simple Hash-Based Token approach
+
+This approach uses hashing to achieve a useful remember-me strategy. In essence  a *cookie* is sent to the browser upon successful interactive authentication.
+
+this has a potential security issue in that a captured remember-me token will be usable from any user agent until such time as the token expires.
+
+#### 3.3 Persistent Token approach
+
+What you need is to apply a <font color='#AAAA00'>data source</font> reference, when needing this approach.
+
+#### 3.4 Remember-me interfaces and Implementations
+
+Remember-me is used with <u><font color='#AA0000'>UsernamePasswordAuthenticationFilter</font></u>, and is implemented via hooks in the <u><font color='#AA0000'>AbstractAuthenticationProcessingFilter</font></u> superclass.
