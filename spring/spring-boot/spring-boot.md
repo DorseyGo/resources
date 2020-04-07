@@ -74,7 +74,7 @@ Spring Boot auto-configuration attempts to automatically configure your Spring a
 you need to opt-in to auto-configuration by adding <font size='3' color='gray'>@EnableAutoConfiguration</font> or <font size='3' color='gray'>@SpringBootApplication</font> annotations to one of your <font size='3' color='gray'>@Configuration</font> classes.
 
 #### 1.4.1 Disabling Specific Auto-Configuration Classes
-if you find that specific auto-configuration classes that you do not want are being applied, you can use exclude attribute of <font color='gray', size='3'>@EnableAutoConfiguration</font>.
+if you find that specific auto-configuration classes that you do not want are being applied, you can use exclude attribute of <font color='#cccccc' size='3'>@EnableAutoConfiguration</font>.
 
 ``` java
 @Configuration
