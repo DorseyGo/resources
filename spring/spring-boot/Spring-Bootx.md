@@ -147,7 +147,49 @@ The <font color="#aa0">EnvironmentPostProcessor</font> interface allows you to m
 
 ### 2.3 Logging
 
+By default, if you use <b><u>starters</u></b>, Logback is used for logging.
+
+> When you deploy your application to a servlet container or application server, logging performed via the Java Util logging API is not routed into your application's log.
+
+#### 2.3.1 File output
+
+By default, Spring Boot logs only to console, not to log files. <font color="#aa0">logging.file.name</font> or <font color="#aa0">logging.file.path</font> property can be set to achieve the target to write logs to log files.
+
+| logging.file.name | logging.file.path  |                                                              |
+| ----------------- | ------------------ | :----------------------------------------------------------- |
+| (none)            | (none)             | console by logging                                           |
+| specific file     | (none)             | writes to the specific log file. Names can be exact location or relative to current directory |
+| (none)            | specific directory | writes <font color="#0aa">spring.log</font> to the specified directory. Names can be an exact location or relative to the current directory |
+
+ <font color="#aa0">logging.file.max-size</font> can be set to <u>limit the file size</u>.
+
+Previously rotated files are archived indefinitely unless the <font color="#aa0">logging.file.max-history</font> property has been set
+
+The <u>total size of log archives</u> can be capped using <font color="#aa0">logging.file.total-size-cap</font>.
+
+To force <u>log archive cleanup</u> on application startup, use the <font color="#aa0">logging.file.clean-history-on-startup</font> property
+
+#### 2.3.2 Log levels
+
 ### 2.4 Profiles
+
+Spring profiles provides a way to segregate parts of your application configuration and make it be available only in certain environments.
+
+Any <font color="#aa0">@Component</font>, <font color="#aa0">@Configuration</font>, <font color="#aa0">@ConfigurationProperties</font> can be marked with <font color="#aa0">@Profile</font> to limit the when it is loaded.
+
+```java
+@Configuration(proxyBeanMethods = false)
+@Profile("prod")
+public class ProdConfig {
+    // ... configuration goes here
+}
+```
+
+>if <font color="#aa0">@ConfigurationProperties</font> beans are registered via <font color="#aa0">@EnableConfigurationProperties</font> instead of automatic scanning, the <font color="#aa0">@Profile</font> annotation needs to be specified on the <font color="#aa0">@Configuration</font> class that has <font color="#aa0">@EnableConfigurationProperties</font>.
+
+<font color="#aa0">spring.profiles.active</font> can be set to specify which profiles are active.
+
+<font color="#aa0">spring.profiles.include</font> or <font color="#aa0">SpringApplication.setAdditionalProfiles(...)</font> programatically,  can be set to <b><u>add</u></b> profile-specific properties to the active profile rather than replace them.
 
 ### 2.5 Internals
 
@@ -170,6 +212,61 @@ Lazy initialization can be enabled programatically using the <font color="#aa0">
 Alternatively, it can be enabled using the <font color="#aa0">spring.main.lazy-initialization</font> property.
 
 #### 2.5.3 Application Events and Listeners
+
+There are three ways to register listeners,
+
+- using <font color="#aa0">@Bean</font>, if the events it listens on are triggered after the <font color="#aa0">ApplicationContext</font> is created
+- register the listeners if events are triggered before <font color="#aa0">ApplicationContext</font> is created, via <font color="#aa0">SpringAppication.addListeners(~)</font> or <font color="#aa0">SpringApplicationBuilder.listeners(~)</font>
+- add a <font color="#aa0"><u>META-INF/spring.factories</u></font> file to your project and reference your listeners by using the key as <font color="#aa0">org.springframework.context.ApplicationListener</font>
+
+#### 2.5.4 Web Environment
+
+A <font color="#aa0">SpringApplication</font> attempts to create right type of <font color="#aa0">ApplicationContext</font> on your behalf. The algorithm to determine a <font color="#aa0">WebApplicationType</font> is fairly simple:
+
+- If Spring MVC is present, an <font color="#aa0">AnnotationConfigServletWebServerApplicationContext</font> is used.
+- If Spring MVC is not present and Spring <b><u>WebFlux</u></b> is present, then an <font color="#aa0">AnnotationConfigReactiveWebServerApplicationContext</font> is used.
+- otherwise, <font color="#aa0">AnnotationConfigApplicationContext</font> is used
+
+> it is often desirable to call <font color="#aa0">setWebApplicationType(WebApplicationType.NONE)</font> when using it in a JUnit test.
+
+#### 2.5.5 Accessing Application Arguments
+
+If you need to access the application arguments that were passed to <font color="#aa0">SpringApplication.run(...)</font>, you can inject a <font color="#aa0">org.springframework.boot.ApplicationArguments</font> bean.
+
+``` java
+@Component
+public class AppArgus {
+    @Autowired
+    public AppArgus(final ApplicationArguments args) {
+        boolean exists = args.containsOption("debug");
+        List<String> files = args.getNonOptionArgs();
+        // if passed in --debug fil1.log then exists = true, files: fil1.log
+    }
+}
+```
+
+#### 2.5.6 Using ApplicationRunner or CommandLineRunner
+
+If you want to run some specific code once the <font color="#aa0">SpringApplication</font> has started, you can implement the <font color="#aa0">ApplicationRunner</font> or <font color="#aa0">CommandLineRunner</font> interfaces. 
+
+Both interfaces work in the same way and offers a single <font color="#aa0">run</font> method, which is called just <u>before</u> <font color="#aa0">SpringApplication.run(...)</font> <u><b>completes</b></u>.
+
+``` java
+@Component
+public class MyAppRunner implements ApplicationRunner {
+    public void run(final ApplicationArguments args) {
+        // code runs once the SpringApplication has started, before run() completes.
+    }
+}
+```
+
+#### 2.5.7 Application exit
+
+<font color="#aa0">ExitCodeGenerator</font> will be implemented when a specific exit code is desired.
+
+#### 2.5.8 Admin feature
+
+You can enable admin-related features for the application by specifying the <font color="#aa0">spring.application.admin.enabled</font> property. This exposes the <font color="#aa0">SpringApplicationMXBean</font> on the platform <font color="#aa0">MBeanServer</font>.
 
 ## 3. Web development
 
