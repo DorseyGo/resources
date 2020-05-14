@@ -171,6 +171,42 @@ To force <u>log archive cleanup</u> on application startup, use the <font color=
 
 #### 2.3.2 Log levels
 
+All the supported logging system can have the logger levels set in the Spring <font color="#aa0">Environment</font> by using <font color="#aa0">logging.level.<logger-name>=<level></font> where the <font color="#aa0">level</font> is one of TRACE, DEBUG, INFO, WARN, ERROR, FETAL, or OFF.
+
+``` properties
+logging.level.root=INFO
+logger.level.org.springframework.web=DEBUG
+logger.level.org.hibernate=ERROR
+```
+
+#### 2.3.3 Log groups
+
+It's often useful to be able to group related loggers together so that they can all be configured at the same time, by using <font color="#aa0">logging.group.<group-name>=<packages></font>.
+
+```properties
+logging.group.tomcat=org.tomcat.catalina, org.apache.coyote
+```
+
+once defined, you can change the level for all the loggers in the group with single line,
+
+```properties
+logging.level.tomcat=INFO
+```
+
+#### 2.3.4 Custom Log Configuration
+
+The various logging systems can be activated by including the appropriate libraries on the classpath and can be further customized by providing a suitable configuration file in the root of the classpath or in a location by the following Spring <font color="#aa0">Environment</font> property: <font color="#aa0">logging.config</font>.
+
+Depending on your logging system, the following files are added,
+
+| Logging System | Customization                                                |
+| -------------- | ------------------------------------------------------------ |
+| Logback        | logback-spring.xml, logback-spring.groovy, logback.xml or logback.groovy |
+| Log4j2         | log4j2-spring.xml or log4j2.xml                              |
+| JDK            | logging.properties                                           |
+
+> When possible, it is strongly recommended you use the <font color="#0aa">-spring</font> variants for your logging configuration
+
 ### 2.4 Profiles
 
 Spring profiles provides a way to segregate parts of your application configuration and make it be available only in certain environments.
@@ -267,6 +303,19 @@ public class MyAppRunner implements ApplicationRunner {
 #### 2.5.8 Admin feature
 
 You can enable admin-related features for the application by specifying the <font color="#aa0">spring.application.admin.enabled</font> property. This exposes the <font color="#aa0">SpringApplicationMXBean</font> on the platform <font color="#aa0">MBeanServer</font>.
+
+### 2.6 Internationalization
+
+Spring Boot supports localized messages so that your application can cater to users of different language preferences.
+
+The base-name of the resource bundle as well as several other attributes can be configured using the <font color="#aa0">spring.messages</font> namespace,
+
+``` properties
+spring.messages.basename=messages, config.i18n.messages
+spring.messages.fallback-to-system-locale=false
+```
+
+
 
 ## 3. Web development
 
