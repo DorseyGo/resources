@@ -147,7 +147,7 @@ when a channel is registered, Netty "binds" that channel to a single <font color
 
 > The EventLoop is always bound to a single thread that never changed during its lifetime.
 
-#### 2.2.3 Bootstrapping: What and Why?
+#### 3.1.1 Bootstrapping: What and Why?
 
 Bootstrapping in Netty is the process by which you configure your Netty application. You use a bootstrap when you need to connect a client to some host and port, or bind a server to a given port.
 
@@ -158,7 +158,19 @@ Similarities and differences between two types of Bootstraps (<font color="#aa0"
 |      Responsible For      | Connects to a remote host and port | Binds to local port |
 | Number of EventLoopGroups |                 1                  |          2          |
 
+#### 3.1.2 Channel Handlers & Data Flow
 
+In many ways a Netty <font color="#aa0">ChannelHandler</font> is what your application deals with the most, it is the key to many things.
+
+A <font color="#aa0">ChannelHandler</font> can be thought of any piece of code that processes data coming and going through the <font color="#aa0">ChannelPipeline</font>.
+
+In order for data to get from one end to another typically, one or more <font color="#aa0">ChannelHandler</font> would have manipulated the data in some way. These <font color="#aa0">ChannelHandlers</font> would have been added at the bootstrap phase of the application and the order in which they were added determines the <b><u>order</u></b> in which they would have manipulated the data.
+
+The <font color="#aa0">ChannelPipeline</font> is an arrangement of a series of <font color="#aa0">ChannelHandler</font>. Each <font color="#aa0">ChannelHandler</font> performs its actions on the data then may be transformed data to the next <font color="#aa0">ChannelHandler</font> in the <font color="#aa0">ChannelPipeline</font>, until no more <font color="#aa0">ChannelHandler</font> remain.
+
+#### 3.1.3 Encoder, Decoder, and Domain Logic
+
+When you send or receive a message with Netty it must be converted from one form to another. If the message is being received it must be converted from bytes to a Java Object. If the message is being sent it must be converted from a Java Object to bytes.
 
 ## 7 Appendix
 
