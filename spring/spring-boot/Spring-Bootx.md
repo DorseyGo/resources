@@ -329,6 +329,34 @@ spring.messages.fallback-to-system-locale=false
 
 ### 4.2 NoSQL
 
+#### 4.2.1 Redis
+
+Redis is a <font color="#aa0">cache, <b>message broker</b>, richly-featured key-value</font> store. Spring Boot offers basic auto-configuration for the <font color="#aa0">Lettuce</font> and <font color="#aa0">Jedis</font> client libraries and the abstractions on top of them.
+
+A <font color="#aa0">spring-boot-starter-data-redis</font> "Starter" is introduced for collecting the dependencies in a convenient way. By default, it uses <font color="#aa0">Lettuce</font>.
+
+> a <font color="#aa0">spring-boot-starter-data-redis-reactive</font> "Starter" is provided for consistency with the other stores with reactive support.
+
+##### connecting to Redis
+
+You can inject an auto-configured <font color="#aa0">RedisConnectionFactory</font>, <font color="#aa0">StringRedisTemplate</font>, or vanilla <font color="#aa0">RedisTemplate</font> instance as you would.
+
+``` java
+@Component
+public class MyBean {
+    private StringRedisTemplate stringRedisTemplate;
+    
+    @Autowired
+    public MyBean(final StringRedisTemplate stringRedisTemplate) {
+        this.stringRedisTemplate = stringRedisTemplate;
+    }
+    
+    // code goes here
+}
+```
+
+
+
 ## 5. Messaging
 
 ### 5.1 JMS
